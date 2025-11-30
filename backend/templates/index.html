@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Twitter Keyword Search</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #f5f8fa;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      margin: 0;
+    }
+
+    .container {
+      background: white;
+      padding: 25px;
+      border-radius: 12px;
+      box-shadow: 0 4px 16px rgba(0,0,0,0.1);
+      width: 350px;
+      text-align: center;
+    }
+
+    h1 {
+      font-size: 1.6rem;
+      color: #1da1f2;
+      margin-bottom: 10px;
+    }
+
+    input[type="text"] {
+      width: 100%;
+      padding: 12px;
+      border-radius: 8px;
+      border: 1px solid #ccc;
+      font-size: 1rem;
+      margin-top: 10px;
+    }
+
+    button {
+      margin-top: 15px;
+      width: 100%;
+      padding: 12px;
+      border: none;
+      border-radius: 8px;
+      background: #1da1f2;
+      color: white;
+      font-size: 1rem;
+      cursor: pointer;
+      transition: 0.2s;
+    }
+
+    button:hover {
+      background: #0d8adf;
+    }
+
+    #result {
+      margin-top: 15px;
+      font-size: 1rem;
+      color: #333;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="container">
+    <h1>Twitter Post Search</h1>
+    <p>Enter a keyword or hashtag from a Twitter post:</p>
+
+    <input id="queryInput" type="text" placeholder="e.g. #Bitcoin, Elon Musk, AI" required>
+    <button onclick="sendSearch()">Search</button>
+
+    <p id="result"></p>
+  </div>
+</body>
+
+<script>
+  function sendSearch() {
+    const query = document.getElementById("queryInput").value;
+
+    fetch("/search", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ query: query })
+    })
+    .then(res => res.json())
+    .then(data => {
+      document.getElementById("result").innerText =
+        "Server response: " + data.Received;
+    });
+  }
+</script>
+
+</html>
