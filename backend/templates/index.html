@@ -2,94 +2,324 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Twitter Keyword Search</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Twitter Sentiment Analysis</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
   <style>
     body {
-      font-family: Arial, sans-serif;
-      background: #f5f8fa;
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
       display: flex;
       justify-content: center;
       align-items: center;
       height: 100vh;
       margin: 0;
+      letter-spacing: -0.3px;
     }
 
     .container {
       background: white;
-      padding: 25px;
-      border-radius: 12px;
-      box-shadow: 0 4px 16px rgba(0,0,0,0.1);
-      width: 350px;
+      padding: 40px;
+      border-radius: 16px;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15), 0 0 1px rgba(0, 0, 0, 0.1);
+      width: 420px;
       text-align: center;
+      backdrop-filter: blur(10px);
+      animation: slideUp 0.6s ease-out;
+    }
+
+    @keyframes slideUp {
+      from {
+        opacity: 0;
+        transform: translateY(20px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
     }
 
     h1 {
-      font-size: 1.6rem;
+      font-size: 1.8rem;
+      font-weight: 700;
       color: #1da1f2;
-      margin-bottom: 10px;
+      margin-bottom: 8px;
+      letter-spacing: -0.5px;
+    }
+
+    p {
+      font-size: 0.95rem;
+      color: #657786;
+      font-weight: 400;
+      margin: 8px 0 20px 0;
+      line-height: 1.5;
+    }
+
+    .search-container {
+      display: flex;
+      gap: 12px;
+      margin-top: 15px;
+      margin-bottom: 15px;
+      align-items: center;
+    }
+
+    select[id="searchMode"] {
+      padding: 12px 14px;
+      border-radius: 10px;
+      border: 1.5px solid #e1e8ed;
+      font-size: 0.95rem;
+      font-weight: 500;
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      background-color: #f7f9fa;
+      color: #333;
+      cursor: pointer;
+      min-width: 140px;
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    select[id="searchMode"]:hover {
+      border-color: #1da1f2;
+      background-color: #fff;
+    }
+
+    select[id="searchMode"]:focus {
+      outline: none;
+      border-color: #1da1f2;
+      box-shadow: 0 0 0 3px rgba(29, 161, 242, 0.1);
+      background-color: #fff;
     }
 
     input[type="text"] {
-      width: 100%;
-      padding: 12px;
-      border-radius: 8px;
-      border: 1px solid #ccc;
-      font-size: 1rem;
-      margin-top: 10px;
+      flex: 1;
+      padding: 12px 14px;
+      border-radius: 10px;
+      border: 1.5px solid #e1e8ed;
+      font-size: 0.95rem;
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      background-color: #f7f9fa;
+      color: #333;
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    input[type="text"]::placeholder {
+      color: #aab8c2;
+      font-weight: 400;
+    }
+
+    input[type="text"]:hover {
+      border-color: #1da1f2;
+      background-color: #fff;
+    }
+
+    input[type="text"]:focus {
+      outline: none;
+      border-color: #1da1f2;
+      background-color: #fff;
+      box-shadow: 0 0 0 3px rgba(29, 161, 242, 0.1);
+    }
+
+    input[type="text"].valid {
+      border-color: #17bf63;
+      box-shadow: 0 0 0 3px rgba(23, 191, 99, 0.1);
+    }
+
+    input[type="text"].invalid {
+      border-color: #e0245e;
+      box-shadow: 0 0 0 3px rgba(224, 36, 94, 0.1);
+    }
+
+    .validation-message {
+      font-size: 0.85rem;
+      margin-top: 8px;
+      height: 20px;
+      transition: color 0.3s ease;
+    }
+
+    .validation-message.error {
+      color: #e0245e;
+      font-weight: 500;
+    }
+
+    .validation-message.success {
+      color: #17bf63;
+      font-weight: 500;
     }
 
     button {
-      margin-top: 15px;
       width: 100%;
       padding: 12px;
       border: none;
-      border-radius: 8px;
-      background: #1da1f2;
+      border-radius: 10px;
+      background: linear-gradient(135deg, #1da1f2 0%, #0d8adf 100%);
       color: white;
-      font-size: 1rem;
+      font-size: 0.95rem;
+      font-weight: 600;
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
       cursor: pointer;
-      transition: 0.2s;
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      box-shadow: 0 4px 12px rgba(29, 161, 242, 0.3);
     }
 
-    button:hover {
-      background: #0d8adf;
+    button:hover:not(:disabled) {
+      background: linear-gradient(135deg, #0d8adf 0%, #0a6fb3 100%);
+      box-shadow: 0 6px 16px rgba(29, 161, 242, 0.4);
+      transform: translateY(-2px);
+    }
+
+    button:active:not(:disabled) {
+      transform: translateY(0);
+      box-shadow: 0 2px 8px rgba(29, 161, 242, 0.3);
+    }
+
+    button:disabled {
+      background: linear-gradient(135deg, #ccc 0%, #999 100%);
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+      cursor: not-allowed;
+      opacity: 0.6;
     }
 
     #result {
-      margin-top: 15px;
-      font-size: 1rem;
-      color: #333;
+      margin-top: 20px;
+      font-size: 0.95rem;
+      color: #657786;
+      font-weight: 500;
+      line-height: 1.5;
+      min-height: 24px;
     }
   </style>
 </head>
 
 <body>
   <div class="container">
-    <h1>Twitter Post Search</h1>
-    <p>Enter a keyword or hashtag from a Twitter post:</p>
+    <h1>X (Twitter) Post Search</h1>
+    <p>Enter a keyword or hashtag from an X/Twitter post:</p>
 
-    <input id="queryInput" type="text" placeholder="e.g. #Bitcoin, Elon Musk, AI" required>
-    <button onclick="sendSearch()">Search</button>
+    <div class="search-container">
+      <select id="searchMode">
+        <option value="keyword">Keyword</option>
+        <option value="user_tag">User Tag</option>
+        <option value="hashtags">Hashtags</option>
+        <option value="topics">Topics</option>
+      </select>
+      <input id="queryInput" type="text" placeholder="e.g. #Bitcoin, Elon Musk, AI" required>
+    </div>
+    <div class="validation-message" id="validationMessage"></div>
+    <button id="searchButton" onclick="sendSearch()">Search</button>
 
     <p id="result"></p>
   </div>
 </body>
 
 <script>
-  function sendSearch() {
-    const query = document.getElementById("queryInput").value;
+    const placeholders = {
+      keyword: "e.g. #Bitcoin, Elon Musk, AI",
+      user_tag: "e.g. @elonmusk, @Twitter",
+      hashtags: "e.g. #Bitcoin, #AI, #Technology",
+      topics: "e.g. Technology, Finance, Politics"
+    };
 
-    fetch("/search", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ query: query })
-    })
-    .then(res => res.json())
-    .then(data => {
-      document.getElementById("result").innerText =
-        "Server response: " + data.Received;
+    const validationRules = {
+      keyword: (input) => input.trim().length > 0,
+      user_tag: (input) => /@[a-zA-Z0-9_]+/.test(input.trim()),
+      hashtags: (input) => /#[a-zA-Z0-9_]+/.test(input.trim()),
+      topics: (input) => input.trim().length > 0 && !/[@#]/.test(input.trim())
+    };
+
+    const errorMessages = {
+      keyword: "Invalid input",
+      user_tag: "Username must start with @",
+      hashtags: "Hashtag must start with #",
+      topics: "Topics cannot contain @ or # symbols"
+    };
+
+    // Initialize on page load
+    window.addEventListener('DOMContentLoaded', function() {
+      updatePlaceholder();
+      setupEventListeners();
     });
-  }
-</script>
 
+    function setupEventListeners() {
+      const searchModeSelect = document.getElementById('searchMode');
+      const queryInput = document.getElementById('queryInput');
+
+      searchModeSelect.addEventListener('change', function() {
+        updatePlaceholder();
+        queryInput.value = '';
+        clearValidation();
+      });
+
+      queryInput.addEventListener('input', validateInput);
+    }
+
+    function updatePlaceholder() {
+      const searchMode = document.getElementById('searchMode').value;
+      const queryInput = document.getElementById('queryInput');
+      queryInput.placeholder = placeholders[searchMode];
+    }
+
+    function validateInput() {
+      const queryInput = document.getElementById('queryInput');
+      const searchMode = document.getElementById('searchMode').value;
+      const input = queryInput.value;
+      const validationMessage = document.getElementById('validationMessage');
+      const searchButton = document.getElementById('searchButton');
+
+      if (input.trim() === '') {
+        clearValidation();
+        return;
+      }
+
+      const isValid = validationRules[searchMode](input);
+
+      if (isValid) {
+        queryInput.classList.remove('invalid');
+        queryInput.classList.add('valid');
+        validationMessage.classList.remove('error');
+        validationMessage.classList.add('success');
+        validationMessage.textContent = '✓ Valid format';
+        searchButton.disabled = false;
+      } else {
+        queryInput.classList.remove('valid');
+        queryInput.classList.add('invalid');
+        validationMessage.classList.remove('success');
+        validationMessage.classList.add('error');
+        validationMessage.textContent = '✗ ' + errorMessages[searchMode];
+        searchButton.disabled = true;
+      }
+    }
+
+    function clearValidation() {
+      const queryInput = document.getElementById('queryInput');
+      const validationMessage = document.getElementById('validationMessage');
+      const searchButton = document.getElementById('searchButton');
+
+      queryInput.classList.remove('valid', 'invalid');
+      validationMessage.textContent = '';
+      validationMessage.classList.remove('success', 'error');
+      searchButton.disabled = true;
+    }
+
+    function sendSearch() {
+      const queryInput = document.getElementById('queryInput');
+      const query = queryInput.value;
+      const searchMode = document.getElementById('searchMode').value;
+
+      // Final validation before sending
+      if (!validationRules[searchMode](query)) {
+        alert('Invalid ' + searchMode.replace('_', ' ') + ' format');
+        return;
+      }
+
+      fetch("/search", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ query: query, search_mode: searchMode })
+      })
+      .then(res => res.json())
+      .then(data => {
+        document.getElementById("result").innerText =
+          "Server response: " + data.Received;
+      });
+    }
+  </script>
 </html>
