@@ -1,0 +1,1 @@
+{"account_id":2017025182855028736,"title":"CreditsDepleted","detail":"Your enrolled account [2017025182855028736] does not have any credits to fulfill this request.","type":"https://api.twitter.com/2/problems/credits"}
