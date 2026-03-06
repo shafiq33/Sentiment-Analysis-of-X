@@ -7,10 +7,8 @@
 from pathlib import Path
 from datasets import load_dataset
 
-# load the dataset once at import time; we'll use the 'train' split for
-# search.  This will download the data the first time the module is
-# imported, which may take a moment.
-_dataset = load_dataset("tweet_eval", "sentiment", split="train")
+# Load tweet_eval dataset
+tweet_eval_dataset = load_dataset("tweet_eval", "sentiment", split="train")
 
 
 def fetch_tweets(query, max_results=10):
@@ -30,21 +28,22 @@ def fetch_tweets(query, max_results=10):
             return {"data": json.loads(path.read_text())}
         return {"data": []}
 
-    # query the static dataset
+    # query the dataset
     matches = []
     text = query.lower()
-    for idx, example in enumerate(_dataset):
+
+    # Search tweet_eval dataset
+    for idx, example in enumerate(tweet_eval_dataset):
         if text in example["text"].lower():
             matches.append({
                 "text": example["text"],
-                # tweet_eval doesn't provide timestamps or author ids, so
-                # we leave those blank or fabricate placeholders
                 "created_at": "",
                 "author_id": "",
-                "id": str(idx)
+                "id": f"tweet_eval_{idx}"
             })
             if len(matches) >= max_results:
                 break
+
     if matches:
         return {"data": matches}
 
