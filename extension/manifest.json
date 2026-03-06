@@ -1,0 +1,11 @@
+{
+  "manifest_version": 3,
+  "name": "Sentiment Analysis Extension",
+  "version": "1.0",
+  "description": "Analyze sentiment of tweets",
+  "permissions": ["activeTab"],
+  "host_permissions": ["http://localhost:5000/*"],
+  "action": {
+    "default_popup": "popup.html"
+  }
+}

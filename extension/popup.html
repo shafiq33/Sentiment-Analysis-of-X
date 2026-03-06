@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Twitter Keyword Search</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #f5f8fa;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 400px;
+      margin: 0;
+      width: 350px;
+    }
+
+    .container {
+      background: white;
+      padding: 25px;
+      border-radius: 12px;
+      box-shadow: 0 4px 16px rgba(0,0,0,0.1);
+      width: 100%;
+      text-align: center;
+    }
+
+    h1 {
+      font-size: 1.6rem;
+      color: #1da1f2;
+      margin-bottom: 10px;
+    }
+
+    input[type="text"] {
+      width: 100%;
+      padding: 12px;
+      border-radius: 8px;
+      border: 1px solid #ccc;
+      font-size: 1rem;
+      margin-top: 10px;
+      box-sizing: border-box;
+    }
+
+    button {
+      margin-top: 15px;
+      width: 100%;
+      padding: 12px;
+      border: none;
+      border-radius: 8px;
+      background: #1da1f2;
+      color: white;
+      font-size: 1rem;
+      cursor: pointer;
+      transition: 0.2s;
+    }
+
+    button:hover {
+      background: #0d8adf;
+    }
+
+    #results {
+      margin-top: 20px;
+      text-align: left;
+    }
+
+    .tweet {
+      border-bottom: 1px solid #eee;
+      padding: 10px 0;
+    }
+
+    .sentiment {
+      font-weight: bold;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="container">
+    <h1>Twitter Post Search</h1>
+    <p>Enter a keyword or hashtag from a Twitter post:</p>
+
+    <input type="text" id="query" placeholder="e.g. #Bitcoin, Elon Musk, AI" required>
+    <select id="search_mode">
+      <option value="keyword">Keyword</option>
+      <option value="hashtags">Hashtags</option>
+      <option value="user_tag">User Tag</option>
+    </select>
+    <button id="searchBtn">Search</button>
+
+    <div id="results"></div>
+  </div>
+
+  <script src="popup.js"></script>
+</body>
+</html>
