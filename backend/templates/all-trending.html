@@ -1,0 +1,445 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>All Trending Topics - Sentiment Analysis</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+      margin: 0;
+      padding: 20px;
+      letter-spacing: -0.3px;
+    }
+    .container {
+      background: white;
+      padding: 40px;
+      border-radius: 16px;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15), 0 0 1px rgba(0, 0, 0, 0.1);
+      max-width: 1200px;
+      margin: 0 auto;
+      animation: slideUp 0.6s ease-out;
+    }
+    @keyframes slideUp {
+      from {
+        opacity: 0;
+        transform: translateY(20px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+    .header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 30px;
+    }
+    h1 {
+      font-size: 1.8rem;
+      font-weight: 700;
+      color: #1da1f2;
+      margin: 0;
+      letter-spacing: -0.5px;
+    }
+    .back-button {
+      padding: 10px 20px;
+      border: none;
+      border-radius: 10px;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      font-size: 0.9rem;
+      font-weight: 600;
+      cursor: pointer;
+      text-decoration: none;
+      display: inline-block;
+      transition: all 0.3s;
+    }
+    .back-button:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+    }
+    p {
+      font-size: 0.95rem;
+      color: #657786;
+      font-weight: 400;
+      margin: 0 0 20px 0;
+      line-height: 1.5;
+    }
+    /* Trending Topics Grid */
+    .trending-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+      gap: 15px;
+      margin-bottom: 30px;
+    }
+    .trending-topic {
+      padding: 20px;
+      border-radius: 12px;
+      background: linear-gradient(135deg, #f7f9fa 0%, #e9ecef 100%);
+      border: 2px solid #e1e8ed;
+      cursor: pointer;
+      transition: all 0.3s;
+      text-align: center;
+    }
+    .trending-topic:hover {
+      border-color: #1da1f2;
+      background: linear-gradient(135deg, #e8f5fe 0%, #d4ebf8 100%);
+      transform: translateY(-3px);
+      box-shadow: 0 4px 12px rgba(29, 161, 242, 0.2);
+    }
+    .trending-topic .tag {
+      font-weight: 700;
+      color: #1da1f2;
+      font-size: 1.1rem;
+      margin-bottom: 5px;
+      word-break: break-word;
+    }
+    .trending-topic .count {
+      font-size: 0.85rem;
+      color: #657786;
+    }
+    /* Pagination */
+    .pagination {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 10px;
+      margin-top: 30px;
+    }
+    .pagination button {
+      padding: 10px 20px;
+      border: 2px solid #1da1f2;
+      border-radius: 8px;
+      background: white;
+      color: #1da1f2;
+      font-size: 0.9rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s;
+    }
+    .pagination button:hover:not(:disabled) {
+      background: #1da1f2;
+      color: white;
+      transform: translateY(-2px);
+    }
+    .pagination button:disabled {
+      opacity: 0.3;
+      cursor: not-allowed;
+    }
+    .pagination .page-info {
+      font-size: 0.95rem;
+      color: #657786;
+      font-weight: 500;
+      padding: 0 15px;
+    }
+    /* Results Display */
+    .results-container {
+      margin-top: 30px;
+    }
+    .summary-box {
+      background: linear-gradient(135deg, #f7f9fa 0%, #e9ecef 100%);
+      padding: 20px;
+      border-radius: 12px;
+      margin-bottom: 20px;
+      border: 2px solid #e1e8ed;
+    }
+    .summary-box h2 {
+      margin: 0 0 15px 0;
+      color: #764ba2;
+      font-size: 1.5rem;
+      letter-spacing: -0.5px;
+      text-shadow: 0 2px 8px rgba(102,126,234,0.08);
+    }
+    .sentiment-stats {
+      display: flex;
+      gap: 20px;
+      margin-bottom: 20px;
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+    .stat {
+      flex: 1;
+      min-width: 140px;
+      padding: 18px;
+      border-radius: 16px;
+      text-align: center;
+      font-weight: 700;
+      font-size: 1.1rem;
+      box-shadow: 0 2px 8px rgba(102,126,234,0.08);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+    .stat.positive {
+      background: linear-gradient(135deg, #a8ff78 0%, #78ffd6 100%);
+      color: #155724;
+      border: 2px solid #a8ff78;
+    }
+    .stat.negative {
+      background: linear-gradient(135deg, #ffb6b9 0%, #fae3d9 100%);
+      color: #721c24;
+      border: 2px solid #ffb6b9;
+    }
+    .stat.neutral {
+      background: linear-gradient(135deg, #f7f7f7 0%, #e2e2e2 100%);
+      color: #856404;
+      border: 2px solid #e2e2e2;
+    }
+    .overall-sentiment {
+      padding: 18px;
+      border-radius: 16px;
+      font-size: 1.3rem;
+      font-weight: 700;
+      text-align: center;
+      margin-top: 10px;
+      box-shadow: 0 2px 8px rgba(102,126,234,0.08);
+    }
+    .overall-sentiment.Positive {
+      background: #28a745;
+      color: white;
+    }
+    .overall-sentiment.Negative {
+      background: #dc3545;
+      color: white;
+    }
+    .overall-sentiment.Neutral {
+      background: #ffc107;
+      color: #333;
+    }
+    .tweets-list {
+      max-height: 600px;
+      overflow-y: auto;
+      margin-top: 20px;
+    }
+    .tweet-card {
+      background: linear-gradient(135deg, #f7f9fa 0%, #e9ecef 100%);
+      border: 2px solid #e1e8ed;
+      border-radius: 16px;
+      padding: 22px;
+      margin-bottom: 18px;
+      transition: all 0.3s;
+      box-shadow: 0 2px 8px rgba(102,126,234,0.08);
+    }
+    .tweet-card:hover {
+      border-color: #1da1f2;
+      box-shadow: 0 2px 8px rgba(29, 161, 242, 0.1);
+    }
+    .tweet-user {
+      font-weight: 700;
+      color: #764ba2;
+      margin-bottom: 8px;
+      font-size: 1rem;
+    }
+    .tweet-text {
+      color: #14171a;
+      line-height: 1.6;
+      margin-bottom: 12px;
+      font-size: 1.05rem;
+      font-family: 'Inter', sans-serif;
+    }
+    .tweet-sentiment {
+      display: inline-block;
+      padding: 6px 18px;
+      border-radius: 16px;
+      font-size: 1rem;
+      font-weight: 700;
+      margin-top: 8px;
+      box-shadow: 0 2px 8px rgba(102,126,234,0.08);
+    }
+    .tweet-sentiment.Positive {
+      background: #d4edda;
+      color: #155724;
+    }
+    .tweet-sentiment.Negative {
+      background: #f8d7da;
+      color: #721c24;
+    }
+    .tweet-sentiment.Neutral {
+      background: #fff3cd;
+      color: #856404;
+    }
+    .loading {
+      color: #657786;
+      font-style: italic;
+      text-align: center;
+      padding: 20px;
+    }
+    .error {
+      color: #e0245e;
+      font-weight: 500;
+      text-align: center;
+      padding: 20px;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="container">
+    <div class="header">
+      <h1>All Trending Topics</h1>
+      <a href="/" class="back-button">← Back to Home</a>
+    </div>
+    <p>Click on any trending topic to see its sentiment analysis</p>
+
+    <div id="trendingGrid" class="trending-grid">
+      <p class="loading">Loading trending topics...</p>
+    </div>
+
+    <div class="pagination" id="pagination">
+      <button id="prevBtn" onclick="changePage(-1)">← Previous</button>
+      <span class="page-info" id="pageInfo">Page 1</span>
+      <button id="nextBtn" onclick="changePage(1)">Next →</button>
+    </div>
+
+    <div id="results" class="results-container"></div>
+  </div>
+
+  <script>
+    let currentPage = 1;
+    let totalPages = 1;
+
+    // Load trending topics on page load
+    window.addEventListener('DOMContentLoaded', function() {
+      loadTrendingTopics(currentPage);
+    });
+
+    function loadTrendingTopics(page) {
+      const trendingGrid = document.getElementById('trendingGrid');
+      trendingGrid.innerHTML = '<p class="loading">Loading trending topics...</p>';
+
+      fetch(`/trending?page=${page}&per_page=50`)
+        .then(res => res.json())
+        .then(data => {
+          const topics = data.topics || [];
+          const pagination = data.pagination || {};
+          
+          currentPage = pagination.page || 1;
+          totalPages = pagination.total_pages || 1;
+
+          if (topics.length === 0) {
+            trendingGrid.innerHTML = '<p class="error">No trending topics available.</p>';
+            return;
+          }
+
+          trendingGrid.innerHTML = '';
+          topics.forEach(topic => {
+            const topicCard = document.createElement('div');
+            topicCard.className = 'trending-topic';
+            topicCard.innerHTML = `
+              <div class="tag">${escapeHtml(topic.tag)}</div>
+              <div class="count">${topic.count} tweets</div>
+            `;
+            topicCard.onclick = () => analyzeTrendingTopic(topic.tag);
+            trendingGrid.appendChild(topicCard);
+          });
+
+          updatePaginationControls(pagination);
+        })
+        .catch(err => {
+          console.error('Error loading trending topics:', err);
+          trendingGrid.innerHTML = '<p class="error">Failed to load trending topics.</p>';
+        });
+    }
+
+    function updatePaginationControls(pagination) {
+      const prevBtn = document.getElementById('prevBtn');
+      const nextBtn = document.getElementById('nextBtn');
+      const pageInfo = document.getElementById('pageInfo');
+
+      prevBtn.disabled = !pagination.has_prev;
+      nextBtn.disabled = !pagination.has_next;
+      pageInfo.textContent = `Page ${pagination.page} of ${pagination.total_pages}`;
+    }
+
+    function changePage(delta) {
+      const newPage = currentPage + delta;
+      if (newPage >= 1 && newPage <= totalPages) {
+        loadTrendingTopics(newPage);
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+        // Clear results when changing page
+        document.getElementById('results').innerHTML = '';
+      }
+    }
+
+    function analyzeTrendingTopic(tag) {
+      const resultsDiv = document.getElementById('results');
+      resultsDiv.innerHTML = '<p class="loading">Analyzing sentiment for ' + escapeHtml(tag) + '...</p>';
+      
+      // Scroll to results
+      resultsDiv.scrollIntoView({ behavior: 'smooth' });
+
+        fetch("/trending-sentiment", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ topic: tag })
+        })
+        .then(res => res.json())
+        .then(data => {
+          displayResults(data, resultsDiv);
+        })
+        .catch(err => {
+          console.error('Error:', err);
+          resultsDiv.innerHTML = '<p class="error">Failed to analyze topic.</p>';
+        });
+    }
+
+    function displayResults(data, containerDiv) {
+      if (data.error) {
+        containerDiv.innerHTML = '<p class="error">Error: ' + escapeHtml(data.error) + '</p>';
+        return;
+      }
+
+      if (data.message) {
+        containerDiv.innerHTML = '<p class="error">' + escapeHtml(data.message) + '</p>';
+        return;
+      }
+
+      const summary = data.summary || {};
+      const tweets = data.tweets || [];
+      const query = data.query || '';
+
+      let html = '<div class="summary-box">';
+      html += '<h2>Results for: ' + escapeHtml(query) + '</h2>';
+      html += '<div class="sentiment-stats">';
+      html += '<div class="stat positive">✓ Positive: ' + summary.positive + '</div>';
+      html += '<div class="stat neutral">○ Neutral: ' + summary.neutral + '</div>';
+      html += '<div class="stat negative">✗ Negative: ' + summary.negative + '</div>';
+      html += '</div>';
+      html += '<div class="overall-sentiment ' + summary.overall + '">';
+      html += 'Overall Sentiment: ' + summary.overall;
+      html += '</div>';
+      html += '</div>';
+
+      if (tweets.length > 0) {
+        html += '<div class="tweets-list">';
+        tweets.forEach(tweet => {
+          const sentimentLabel = tweet.sentiment.includes('Positive') ? 'Positive' :
+                                 tweet.sentiment.includes('Negative') ? 'Negative' : 'Neutral';
+          html += '<div class="tweet-card">';
+          html += '<div class="tweet-user">@' + escapeHtml(tweet.user) + '</div>';
+          html += '<div class="tweet-text">' + escapeHtml(tweet.text) + '</div>';
+          html += '<span class="tweet-sentiment ' + sentimentLabel + '">' + sentimentLabel + '</span>';
+          html += '</div>';
+        });
+        html += '</div>';
+      }
+
+      containerDiv.innerHTML = html;
+    }
+
+    function escapeHtml(text) {
+      const div = document.createElement('div');
+      div.textContent = text;
+      return div.innerHTML;
+    }
+  </script>
+</body>
+</html>

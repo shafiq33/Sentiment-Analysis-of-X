@@ -1,54 +1,75 @@
 # We're no longer relying on web scraping; instead use a static
-# dataset shipped with the project.  The tweet_eval dataset from
-# Hugging Face provides a reasonable set of real tweets labelled for
-# sentiment.  This ensures the backend works offline and isn't affected
-# by Twitter's API restrictions.
+# dataset shipped with the project.  The Sentiment140 dataset provides
+# a large set of real tweets labelled for sentiment.
 
 from pathlib import Path
-from datasets import load_dataset
+from datasets import load_dataset, Dataset
+import pandas as pd
 
-# Load tweet_eval dataset
-tweet_eval_dataset = load_dataset("tweet_eval", "sentiment", split="train")
+# Load Sentiment140 dataset as primary
+csv_path = Path(__file__).parent / "training.1600000.processed.noemoticon.csv"
+sentiment140_df = pd.read_csv(csv_path, encoding='latin-1', header=None,
+                              names=['polarity', 'id', 'date', 'query', 'user', 'text'])
+
+# Map Sentiment140 polarities to labels
+# Sentiment140: 0=negative, 2=neutral, 4=positive
+polarity_mapping = {0: 0, 2: 1, 4: 2}
+sentiment140_df['label'] = sentiment140_df['polarity'].map(polarity_mapping)
+
+# Convert to Hugging Face dataset format (full dataset)
+sentiment140_dataset = Dataset.from_pandas(sentiment140_df[['text', 'label']])
+
+# Load trending topics dataset
+trending_csv_path = Path(__file__).parent / "twitter-trending-hashtags.csv"
+trending_df = pd.read_csv(trending_csv_path)
+trending_topics_list = trending_df['tag'].tolist()
 
 
-def fetch_tweets(query, max_results=10):
-    """Return a list of tweets from the static dataset containing ``query``.
+def get_trending_topics(limit=50):
+    """Return a list of trending hashtags."""
+    return trending_topics_list[:limit]
 
-    The returned structure mirrors what the frontend expects (a dict with
-    key "data" and a list of tweet-like dicts).  If no examples match the
-    query we still return a small set of baked‑in sample tweets so the
-    UI doesn't break.
-    """
 
-    # helper for loading fallback tweets
-    def _load_sample():
-        import json
-        path = Path(__file__).parent / "sample_tweets.json"
-        if path.exists():
-            return {"data": json.loads(path.read_text())}
-        return {"data": []}
+def fetch_tweets(query, search_mode="keyword", max_results=10):
+    """Return a list of tweets from Sentiment140 containing the query based on mode."""
 
-    # query the dataset
     matches = []
-    text = query.lower()
+    query_lower = query.lower()
 
-    # Search tweet_eval dataset
-    for idx, example in enumerate(tweet_eval_dataset):
-        if text in example["text"].lower():
+    if search_mode == "user_tag":
+        # Only match if query starts with '@'
+        print(f"Searching for user tag: {query_lower}")
+        if not query_lower.startswith("@"):  # If no @, return empty
+            print(query_lower)
+            return {"data": []}
+        user_tag = query_lower[1:]  # remove '@'
+        for idx, example in enumerate(sentiment140_df.itertuples()):
+            if user_tag == getattr(example, 'user').lower():
+                matches.append({
+                    "text": getattr(example, 'text'),
+                    "created_at": "",
+                    "author_id": getattr(example, 'user'),
+                    "id": f"sentiment140_{idx}"
+                })
+                if len(matches) >= max_results:
+                    break
+        return {"data": matches}
+
+    # Always search Sentiment140 dataset for trending topics and keywords
+    search_text = query_lower
+    # For trending topics, do not prepend #, just use topic name as-is
+    for idx, example in enumerate(sentiment140_dataset):
+        text_lower = example["text"].lower()
+        if search_text in text_lower:
             matches.append({
                 "text": example["text"],
                 "created_at": "",
                 "author_id": "",
-                "id": f"tweet_eval_{idx}"
+                "id": f"sentiment140_{idx}"
             })
             if len(matches) >= max_results:
                 break
-
-    if matches:
-        return {"data": matches}
-
-    # nothing matched in the dataset; fall back to tiny built-in file
-    return _load_sample()
+    return {"data": matches}
 
 # Example usage (remove when integrating)
 if __name__ == "__main__":

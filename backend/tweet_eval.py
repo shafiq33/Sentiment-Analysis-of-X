@@ -1,44 +1,125 @@
 import torch
 from datasets import load_dataset
-from transformers import AutoTokenizer, AutoModelForSequenceClassification
+from transformers import AutoTokenizer, AutoModelForSequenceClassification, AdamW
 from torch.utils.data import DataLoader
 
-def tokenize_function(example):
-    return tokenizer(example["text"], truncation=True, padding="max_length", max_length=128)
-
+# ---------------------------
+# Setup
+# ---------------------------
 model_name = "cardiffnlp/twitter-roberta-base-sentiment"
+max_length = 128
+batch_size = 16
+num_epochs = 3
+learning_rate = 2e-5
+
+device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+print(f"Using device: {device}")
+
+# ---------------------------
+# Load tokenizer, model, dataset
+# ---------------------------
 tokenizer = AutoTokenizer.from_pretrained(model_name)
 model = AutoModelForSequenceClassification.from_pretrained(model_name)
+model.to(device)
+
 dataset = load_dataset("tweet_eval", "sentiment")
+
+# ---------------------------
+# Tokenization
+# ---------------------------
+def tokenize_function(example):
+    return tokenizer(
+        example["text"],
+        truncation=True,
+        padding="max_length",
+        max_length=max_length
+    )
 
 tokenized_dataset = dataset.map(tokenize_function, batched=True)
 
-from torch.utils.data import DataLoader
+# Keep only the columns we need and convert to PyTorch tensors
+tokenized_dataset = tokenized_dataset.remove_columns(["text"])
+tokenized_dataset = tokenized_dataset.rename_column("label", "labels")
+tokenized_dataset.set_format("torch")
 
-def collate_fn(batch):
-    return {
-        'input_ids': torch.tensor([item['input_ids'] for item in batch]),
-        'attention_mask': torch.tensor([item['attention_mask'] for item in batch]),
-        'labels': torch.tensor([item['label'] for item in batch])
-    }
+# ---------------------------
+# DataLoaders
+# ---------------------------
+train_loader = DataLoader(
+    tokenized_dataset["train"],
+    batch_size=batch_size,
+    shuffle=True
+)
 
-batch_size = 16
-train_loader = DataLoader(tokenized_dataset['train'], batch_size=batch_size, shuffle=True, collate_fn=collate_fn)
+val_loader = DataLoader(
+    tokenized_dataset["validation"],
+    batch_size=batch_size,
+    shuffle=False
+)
 
-num_epochs = 3  # You can change this number
+# ---------------------------
+# Optimizer
+# ---------------------------
+optimizer = AdamW(model.parameters(), lr=learning_rate)
 
+# ---------------------------
+# Training loop
+# ---------------------------
 for epoch in range(num_epochs):
-    print(f"Epoch {epoch+1}/{num_epochs}")
+    model.train()
+    total_train_loss = 0
+
+    print(f"\nEpoch {epoch + 1}/{num_epochs}")
+
     for batch in train_loader:
-        input_ids = batch['input_ids']
-        attention_mask = batch['attention_mask']
-        labels = batch['labels']
+        batch = {k: v.to(device) for k, v in batch.items()}
 
-        outputs = model(input_ids=input_ids, attention_mask=attention_mask, labels=labels)
+        optimizer.zero_grad()
+
+        outputs = model(**batch)
         loss = outputs.loss
-        
-        print(f"Loss: {loss.item()}")
 
+        loss.backward()
+        optimizer.step()
 
-saved_model_path = "sentiment_model.pt"
-torch.save(model.state_dict(), saved_model_path)
+        total_train_loss += loss.item()
+
+    avg_train_loss = total_train_loss / len(train_loader)
+    print(f"Average training loss: {avg_train_loss:.4f}")
+
+    # ---------------------------
+    # Validation
+    # ---------------------------
+    model.eval()
+    total_val_loss = 0
+    correct = 0
+    total = 0
+
+    with torch.no_grad():
+        for batch in val_loader:
+            batch = {k: v.to(device) for k, v in batch.items()}
+
+            outputs = model(**batch)
+            loss = outputs.loss
+            logits = outputs.logits
+
+            total_val_loss += loss.item()
+
+            predictions = torch.argmax(logits, dim=-1)
+            correct += (predictions == batch["labels"]).sum().item()
+            total += batch["labels"].size(0)
+
+    avg_val_loss = total_val_loss / len(val_loader)
+    val_accuracy = correct / total
+
+    print(f"Validation loss: {avg_val_loss:.4f}")
+    print(f"Validation accuracy: {val_accuracy:.4f}")
+
+# ---------------------------
+# Save model + tokenizer
+# ---------------------------
+save_dir = "./sentiment_mod"
+model.save_pretrained(save_dir)
+tokenizer.save_pretrained(save_dir)
+
+print(f"Model and tokenizer saved to: {save_dir}")
