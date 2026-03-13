@@ -1,1 +1,84 @@
-stuff here
+# Sentiment Analysis of X
+
+## Project Summary
+This project analyzes sentiment for X (Twitter-like) content using a Python backend and a browser extension UI.
+
+It supports:
+- Keyword search sentiment analysis
+- User tag (`@username`) sentiment analysis
+- Trending topic listing
+- Aggregate sentiment summary (Positive, Negative, Neutral)
+
+The backend uses a transformer model (`cardiffnlp/twitter-roberta-base-sentiment`) to score tweet text.
+
+## How It Works
+1. A query is sent from the frontend/extension to the backend API.
+2. The backend fetches matching tweets from local dataset-based sources.
+3. Each tweet is scored with the sentiment model.
+4. The API returns per-tweet sentiment plus an overall summary.
+
+## Project Structure
+```
+Sentiment-Analysis-of-X/
+├── backend/
+│   ├── app.py                      # Flask API server
+│   ├── data.py                     # Data loading + query matching
+│   ├── model.py                    # Transformer model inference
+│   ├── tweet_eval.py               # Optional training/evaluation script
+│   ├── templates/
+│   │   ├── index.html              # Backend web UI
+│   │   └── all-trending.html
+│   └── twitter-trending-hashtags.csv
+├── extension/
+│   ├── manifest.json               # Browser extension config
+│   ├── popup.html                  # Extension popup UI
+│   └── popup.js                    # Extension logic (calls backend)
+└── requirements.txt                # Python dependencies
+```
+
+## Backend API
+- `POST /search`
+	- Body: `{ "query": "...", "search_mode": "keyword|user_tag|trending" }`
+	- Response: tweet list + sentiment counts + overall sentiment
+
+- `GET /trending`
+	- Returns trending topics from the local CSV
+
+- `POST /trending-sentiment`
+	- Body: `{ "topic": "..." }`
+	- Returns sentiment summary for that topic
+
+## Setup
+### 1) Create and activate a virtual environment
+Windows (PowerShell):
+```powershell
+python -m venv .venv
+.\.venv\Scripts\Activate.ps1
+```
+
+### 2) Install dependencies
+```powershell
+python -m pip install --upgrade pip setuptools wheel
+python -m pip install -r requirements.txt
+```
+
+## Run the Backend
+From the project root:
+```powershell
+cd backend
+python app.py
+```
+
+Server runs at: `http://localhost:5000`
+
+## Use the Browser Extension
+1. Open your browser extension manager page.
+2. Enable Developer Mode.
+3. Load the `extension/` folder as an unpacked extension.
+4. Start the backend first (`http://localhost:5000`).
+5. Open the extension popup and search.
+
+## Notes
+- Ensure dataset files referenced in `backend/data.py` exist locally.
+- First model load may take time because transformer weights are downloaded.
+- Keep the backend running while using the extension popup.
