@@ -49,14 +49,21 @@ Sentiment-Analysis-of-X/
 	- Returns sentiment summary for that topic
 
 ## Setup
-### 1) Create and activate a virtual environment
+
+### 1) Download Sentiment140 Dataset
+Download the Sentiment140 dataset CSV from Kaggle:
+https://www.kaggle.com/datasets/kazanova/sentiment140
+
+Place the downloaded file `training.1600000.processed.noemoticon.csv` into the `backend/` folder.
+
+### 2) Create and activate a virtual environment (Optional)
 Windows (PowerShell):
 ```powershell
 python -m venv .venv
-.\.venv\Scripts\Activate.ps1
+\.venv\Scripts\Activate.ps1
 ```
 
-### 2) Install dependencies
+### 3) Install dependencies
 ```powershell
 python -m pip install --upgrade pip setuptools wheel
 python -m pip install -r requirements.txt

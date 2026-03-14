@@ -14,3 +14,6 @@ backend/training.1600000.processed.noemoticon.csv
 # OS files
 .DS_Store
 Thumbs.db
+
+#Model Parameters
+*.pt
