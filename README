@@ -71,6 +71,14 @@ python app.py
 
 Server runs at: `http://localhost:5000`
 
+## Finetune the Sentiment Model
+To finetune the sentiment model on the Sentiment140 dataset, run:
+```powershell
+cd backend
+python tweet_eval.py
+```
+This script will train the model and save updated parameters to `sentiment_model.pt`.
+
 ## Use the Browser Extension
 1. Open your browser extension manager page.
 2. Enable Developer Mode.

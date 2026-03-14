@@ -2,89 +2,263 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Twitter Keyword Search</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Sentiment Analysis of X</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
   <style>
     body {
-      font-family: Arial, sans-serif;
-      background: #f5f8fa;
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
       display: flex;
       justify-content: center;
       align-items: center;
-      height: 400px;
+      min-height: 500px;
       margin: 0;
-      width: 350px;
+      width: 450px;
+      padding: 10px;
+      box-sizing: border-box;
+      letter-spacing: -0.3px;
     }
 
     .container {
       background: white;
-      padding: 25px;
-      border-radius: 12px;
-      box-shadow: 0 4px 16px rgba(0,0,0,0.1);
+      padding: 30px;
+      border-radius: 16px;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15), 0 0 1px rgba(0, 0, 0, 0.1);
       width: 100%;
       text-align: center;
+      backdrop-filter: blur(10px);
+      animation: slideUp 0.6s ease-out;
+    }
+
+    @keyframes slideUp {
+      from {
+        opacity: 0;
+        transform: translateY(20px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
     }
 
     h1 {
-      font-size: 1.6rem;
+      font-size: 1.5rem;
+      font-weight: 700;
       color: #1da1f2;
-      margin-bottom: 10px;
+      margin-bottom: 8px;
+      letter-spacing: -0.5px;
+    }
+
+    p {
+      margin-bottom: 20px;
+      color: #666;
+      font-size: 0.9rem;
+    }
+
+    .tabs {
+      display: flex;
+      margin-bottom: 20px;
+      border-bottom: 2px solid #e1e8ed;
+    }
+
+    .tab {
+      flex: 1;
+      padding: 10px 5px;
+      background: none;
+      border: none;
+      cursor: pointer;
+      font-size: 0.85rem;
+      font-weight: 500;
+      color: #666;
+      border-bottom: 2px solid transparent;
+      transition: all 0.3s;
+    }
+
+    .tab.active {
+      color: #1da1f2;
+      border-bottom-color: #1da1f2;
+    }
+
+    .tab-content {
+      display: none;
+    }
+
+    .tab-content.active {
+      display: block;
     }
 
     input[type="text"] {
       width: 100%;
       padding: 12px;
-      border-radius: 8px;
-      border: 1px solid #ccc;
-      font-size: 1rem;
-      margin-top: 10px;
+      border-radius: 10px;
+      border: 2px solid #e1e8ed;
+      font-size: 0.95rem;
+      margin-bottom: 15px;
       box-sizing: border-box;
+      transition: border-color 0.3s ease;
+    }
+
+    input[type="text"]:focus {
+      outline: none;
+      border-color: #1da1f2;
+    }
+
+    input.valid {
+      border-color: #17bf63;
+    }
+
+    input.invalid {
+      border-color: #e0245e;
     }
 
     button {
-      margin-top: 15px;
       width: 100%;
       padding: 12px;
       border: none;
-      border-radius: 8px;
-      background: #1da1f2;
+      border-radius: 10px;
+      background: linear-gradient(135deg, #1da1f2 0%, #0d8adf 100%);
       color: white;
       font-size: 1rem;
+      font-weight: 600;
       cursor: pointer;
-      transition: 0.2s;
+      transition: all 0.3s ease;
+      margin-bottom: 20px;
     }
 
-    button:hover {
+    button:hover:not(:disabled) {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(29, 161, 242, 0.3);
+    }
+
+    button:disabled {
+      background: #ccc;
+      cursor: not-allowed;
+      transform: none;
+    }
+
+    .trending-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+      gap: 10px;
+      margin-bottom: 15px;
+    }
+
+    .topic-btn {
+      background: #1da1f2;
+      color: white;
+      border: none;
+      border-radius: 20px;
+      padding: 8px 12px;
+      font-size: 0.85rem;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      text-decoration: none;
+      display: inline-block;
+      text-align: center;
+    }
+
+    .topic-btn:hover {
       background: #0d8adf;
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(29, 161, 242, 0.3);
+    }
+
+    .pagination {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 10px;
+      margin-top: 15px;
+    }
+
+    .pagination button {
+      padding: 6px 10px;
+      border: 1px solid #1da1f2;
+      background: white;
+      color: #1da1f2;
+      border-radius: 5px;
+      cursor: pointer;
+      transition: all 0.3s;
+      font-size: 0.85rem;
+    }
+
+    .pagination button:hover {
+      background: #1da1f2;
+      color: white;
+    }
+
+    .pagination button:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
     }
 
     #results {
-      margin-top: 20px;
       text-align: left;
+      max-height: 300px;
+      overflow-y: auto;
+      margin-top: 20px;
+    }
+
+    .summary {
+      background: #f8f9fa;
+      padding: 15px;
+      border-radius: 10px;
+      margin-bottom: 15px;
+      border-left: 4px solid #1da1f2;
+      font-size: 0.9rem;
     }
 
     .tweet {
-      border-bottom: 1px solid #eee;
-      padding: 10px 0;
+      border-bottom: 1px solid #e1e8ed;
+      padding: 12px 0;
+      line-height: 1.5;
+      font-size: 0.85rem;
+    }
+
+    .tweet:last-child {
+      border-bottom: none;
     }
 
     .sentiment {
       font-weight: bold;
+      color: #1da1f2;
+      margin-top: 5px;
+      font-size: 0.85rem;
     }
   </style>
 </head>
 
 <body>
   <div class="container">
-    <h1>Twitter Post Search</h1>
-    <p>Enter a keyword or hashtag from a Twitter post:</p>
+    <h1>Sentiment Analysis of X</h1>
+    <p>Analyze sentiment from X (Twitter) posts using advanced AI</p>
 
-    <input type="text" id="query" placeholder="e.g. #Bitcoin, Elon Musk, AI" required>
-    <select id="search_mode">
-      <option value="keyword">Keyword</option>
-      <option value="hashtags">Hashtags</option>
-      <option value="user_tag">User Tag</option>
-    </select>
-    <button id="searchBtn">Search</button>
+    <div class="tabs">
+      <button class="tab active" data-tab="keyword">Keyword</button>
+      <button class="tab" data-tab="trending">Trending</button>
+      <button class="tab" data-tab="user">User</button>
+    </div>
+
+    <div id="keyword" class="tab-content active">
+      <input type="text" id="query" placeholder="Enter keywords, hashtags, or topics">
+      <button id="searchBtn">Analyze Sentiment</button>
+    </div>
+
+    <div id="trending" class="tab-content">
+      <div id="trendingTopics" class="trending-grid"></div>
+      <div class="pagination">
+        <button id="prevBtn" disabled>Previous</button>
+        <span id="pageInfo">Page 1</span>
+        <button id="nextBtn">Next</button>
+      </div>
+    </div>
+
+    <div id="user" class="tab-content">
+      <input type="text" id="userQuery" placeholder="Enter @username">
+      <button id="userSearchBtn">Analyze User Posts</button>
+    </div>
 
     <div id="results"></div>
   </div>

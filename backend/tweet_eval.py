@@ -116,10 +116,8 @@ for epoch in range(num_epochs):
     print(f"Validation accuracy: {val_accuracy:.4f}")
 
 # ---------------------------
-# Save model + tokenizer
+# Save model parameters
 # ---------------------------
-save_dir = "./sentiment_mod"
-model.save_pretrained(save_dir)
-tokenizer.save_pretrained(save_dir)
-
-print(f"Model and tokenizer saved to: {save_dir}")
+save_path = "sentiment_model.pt"
+torch.save(model.state_dict(), save_path)
+print(f"Model parameters saved to: {save_path}")

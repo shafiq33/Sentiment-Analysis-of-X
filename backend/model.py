@@ -1,10 +1,22 @@
 from transformers import AutoTokenizer, AutoModelForSequenceClassification
 import torch
+import os
 
 # Load the pre-trained model and tokenizer
 model_name = "cardiffnlp/twitter-roberta-base-sentiment"
 tokenizer = AutoTokenizer.from_pretrained(model_name)
 model = AutoModelForSequenceClassification.from_pretrained(model_name)
+
+# Load the saved model state if it exists
+model_path = os.path.join(os.path.dirname(__file__), "sentiment_model.pt")
+if os.path.exists(model_path):
+    model.load_state_dict(torch.load(model_path, map_location=torch.device('cpu')))
+    print(f"Loaded model state from {model_path}")
+else:
+    print(f"Model state file not found at {model_path}, using pre-trained model")
+
+# Set model to evaluation mode
+model.eval()
 
 def sentiment_scores(sentence):
     # Tokenize the input
