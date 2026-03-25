@@ -30,6 +30,38 @@ def get_trending_topics(limit=50):
     return trending_topics_list[:limit]
 
 
+def get_trending_topics_paginated(page=1, per_page=50):
+    """Return paginated trending topics with their details."""
+    start = (page - 1) * per_page
+    end = start + per_page
+    
+    paginated_df = trending_df.iloc[start:end]
+    topics = [
+        {
+            'tag': row['tag'],
+            'count': int(row['tweets']),
+            'year': int(row['year']),
+            'rank': int(row['rank'])
+        }
+        for _, row in paginated_df.iterrows()
+    ]
+    
+    total_topics = len(trending_df)
+    total_pages = (total_topics + per_page - 1) // per_page
+    
+    return {
+        'topics': topics,
+        'pagination': {
+            'page': page,
+            'per_page': per_page,
+            'total_topics': total_topics,
+            'total_pages': total_pages,
+            'has_prev': page > 1,
+            'has_next': page < total_pages
+        }
+    }
+
+
 def fetch_tweets(query, search_mode="keyword", max_results=10):
     """Return a list of tweets from Sentiment140 containing the query based on mode."""
 

@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>All Trending Topics - Sentiment Analysis</title>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
   <style>
     * {
       box-sizing: border-box;
@@ -113,6 +114,7 @@
       align-items: center;
       gap: 10px;
       margin-top: 30px;
+      flex-wrap: wrap;
     }
     .pagination button {
       padding: 10px 20px;
@@ -139,6 +141,24 @@
       color: #657786;
       font-weight: 500;
       padding: 0 15px;
+    }
+    .page-jump {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-left: 15px;
+    }
+    .page-jump input {
+      width: 60px;
+      padding: 8px;
+      border: 2px solid #1da1f2;
+      border-radius: 6px;
+      text-align: center;
+      font-size: 0.9rem;
+      font-weight: 600;
+    }
+    .page-jump button {
+      padding: 8px 16px;
     }
     /* Results Display */
     .results-container {
@@ -213,6 +233,20 @@
     .overall-sentiment.Neutral {
       background: #ffc107;
       color: #333;
+    }
+    .chart-container {
+      margin: 20px 0;
+      padding: 20px;
+      background: white;
+      border-radius: 16px;
+      box-shadow: 0 2px 8px rgba(102,126,234,0.08);
+    }
+    .chart-title {
+      font-size: 1.1rem;
+      font-weight: 600;
+      color: #14171a;
+      margin-bottom: 15px;
+      text-align: center;
     }
     .tweets-list {
       max-height: 600px;
@@ -297,6 +331,11 @@
       <button id="prevBtn" onclick="changePage(-1)">← Previous</button>
       <span class="page-info" id="pageInfo">Page 1</span>
       <button id="nextBtn" onclick="changePage(1)">Next →</button>
+      <div class="page-jump">
+        <span style="font-size: 0.9rem; color: #657786;">Go to:</span>
+        <input type="number" id="pageInput" min="1" placeholder="Page">
+        <button onclick="jumpToPage()">Go</button>
+      </div>
     </div>
 
     <div id="results" class="results-container"></div>
@@ -309,6 +348,13 @@
     // Load trending topics on page load
     window.addEventListener('DOMContentLoaded', function() {
       loadTrendingTopics(currentPage);
+      
+      // Add Enter key support for page input
+      document.getElementById('pageInput').addEventListener('keypress', function(e) {
+        if (e.key === 'Enter') {
+          jumpToPage();
+        }
+      });
     });
 
     function loadTrendingTopics(page) {
@@ -353,10 +399,12 @@
       const prevBtn = document.getElementById('prevBtn');
       const nextBtn = document.getElementById('nextBtn');
       const pageInfo = document.getElementById('pageInfo');
+      const pageInput = document.getElementById('pageInput');
 
       prevBtn.disabled = !pagination.has_prev;
       nextBtn.disabled = !pagination.has_next;
       pageInfo.textContent = `Page ${pagination.page} of ${pagination.total_pages}`;
+      pageInput.max = pagination.total_pages;
     }
 
     function changePage(delta) {
@@ -367,6 +415,22 @@
         // Clear results when changing page
         document.getElementById('results').innerHTML = '';
       }
+    }
+
+    function jumpToPage() {
+      const pageInput = document.getElementById('pageInput');
+      const pageNumber = parseInt(pageInput.value);
+      
+      if (isNaN(pageNumber) || pageNumber < 1 || pageNumber > totalPages) {
+        alert(`Please enter a valid page number between 1 and ${totalPages}`);
+        return;
+      }
+      
+      loadTrendingTopics(pageNumber);
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+      // Clear results when changing page
+      document.getElementById('results').innerHTML = '';
+      pageInput.value = ''; // Clear the input
     }
 
     function analyzeTrendingTopic(tag) {
@@ -413,6 +477,13 @@
       html += '<div class="stat neutral">○ Neutral: ' + summary.neutral + '</div>';
       html += '<div class="stat negative">✗ Negative: ' + summary.negative + '</div>';
       html += '</div>';
+      
+      // Add chart container
+      html += '<div class="chart-container">';
+      html += '<div class="chart-title">Sentiment Distribution</div>';
+      html += '<canvas id="sentimentChart" width="600" height="250"></canvas>';
+      html += '</div>';
+      
       html += '<div class="overall-sentiment ' + summary.overall + '">';
       html += 'Overall Sentiment: ' + summary.overall;
       html += '</div>';
@@ -424,7 +495,10 @@
           const sentimentLabel = tweet.sentiment.includes('Positive') ? 'Positive' :
                                  tweet.sentiment.includes('Negative') ? 'Negative' : 'Neutral';
           html += '<div class="tweet-card">';
-          html += '<div class="tweet-user">@' + escapeHtml(tweet.user) + '</div>';
+          // Only show user if it's not "unknown"
+          if (tweet.user && tweet.user !== 'unknown') {
+            html += '<div class="tweet-user">@' + escapeHtml(tweet.user) + '</div>';
+          }
           html += '<div class="tweet-text">' + escapeHtml(tweet.text) + '</div>';
           html += '<span class="tweet-sentiment ' + sentimentLabel + '">' + sentimentLabel + '</span>';
           html += '</div>';
@@ -433,6 +507,100 @@
       }
 
       containerDiv.innerHTML = html;
+      
+      // Create the bar chart
+      createSentimentChart(summary);
+    }
+
+    let sentimentChartInstance = null; // Store chart instance globally
+
+    function createSentimentChart(summary) {
+      // Destroy previous chart if it exists
+      if (sentimentChartInstance) {
+        sentimentChartInstance.destroy();
+      }
+      
+      const ctx = document.getElementById('sentimentChart');
+      if (!ctx) return;
+      
+      sentimentChartInstance = new Chart(ctx, {
+        type: 'bar',
+        data: {
+          labels: ['Positive', 'Neutral', 'Negative'],
+          datasets: [{
+            label: 'Number of Posts',
+            data: [summary.positive, summary.neutral, summary.negative],
+            backgroundColor: [
+              'rgba(40, 167, 69, 0.8)',    // Green for positive
+              'rgba(255, 193, 7, 0.8)',     // Yellow for neutral
+              'rgba(220, 53, 69, 0.8)'      // Red for negative
+            ],
+            borderColor: [
+              'rgba(40, 167, 69, 1)',
+              'rgba(255, 193, 7, 1)',
+              'rgba(220, 53, 69, 1)'
+            ],
+            borderWidth: 2,
+            borderRadius: 8,
+            borderSkipped: false
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: true,
+          plugins: {
+            legend: {
+              display: false
+            },
+            tooltip: {
+              backgroundColor: 'rgba(0, 0, 0, 0.8)',
+              padding: 12,
+              titleFont: {
+                size: 14,
+                weight: 'bold'
+              },
+              bodyFont: {
+                size: 13
+              },
+              borderColor: 'rgba(255, 255, 255, 0.2)',
+              borderWidth: 1,
+              displayColors: false,
+              callbacks: {
+                label: function(context) {
+                  const total = summary.positive + summary.neutral + summary.negative;
+                  const percentage = ((context.parsed.y / total) * 100).toFixed(1);
+                  return context.parsed.y + ' posts (' + percentage + '%)';
+                }
+              }
+            }
+          },
+          scales: {
+            y: {
+              beginAtZero: true,
+              ticks: {
+                stepSize: 1,
+                font: {
+                  size: 12
+                }
+              },
+              grid: {
+                color: 'rgba(0, 0, 0, 0.05)'
+              }
+            },
+            x: {
+              ticks: {
+                font: {
+                  size: 13,
+                  weight: '600'
+                }
+              },
+              grid: {
+                display: false
+              }
+            }
+          }
+        }
+      });
     }
 
     function escapeHtml(text) {
