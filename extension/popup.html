@@ -73,11 +73,18 @@
       color: #666;
       border-bottom: 2px solid transparent;
       transition: all 0.3s;
+      position: relative;
+    }
+
+    .tab:hover {
+      color: #1da1f2;
+      background: rgba(29, 161, 242, 0.05);
     }
 
     .tab.active {
       color: #1da1f2;
       border-bottom-color: #1da1f2;
+      background: rgba(29, 161, 242, 0.08);
     }
 
     .tab-content {
@@ -86,30 +93,91 @@
 
     .tab-content.active {
       display: block;
+      animation: fadeIn 0.4s ease-in;
+    }
+
+    @keyframes fadeIn {
+      from {
+        opacity: 0;
+        transform: translateY(10px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .input-group {
+      margin-bottom: 20px;
+    }
+
+    .input-label {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 10px;
+      font-weight: 600;
+      color: #14171a;
+      font-size: 0.9rem;
+    }
+
+    .input-label-icon {
+      font-size: 1.1rem;
+    }
+
+    .input-wrapper {
+      position: relative;
     }
 
     input[type="text"] {
       width: 100%;
-      padding: 12px;
-      border-radius: 10px;
+      padding: 14px 16px;
+      border-radius: 12px;
       border: 2px solid #e1e8ed;
       font-size: 0.95rem;
-      margin-bottom: 15px;
       box-sizing: border-box;
-      transition: border-color 0.3s ease;
+      transition: all 0.3s ease;
+      background: white;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.04);
+    }
+
+    input[type="text"]:hover {
+      border-color: #aab8c2;
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.08);
     }
 
     input[type="text"]:focus {
       outline: none;
       border-color: #1da1f2;
+      box-shadow: 0 0 0 3px rgba(29, 161, 242, 0.1), 0 4px 12px rgba(29, 161, 242, 0.15);
+      transform: translateY(-1px);
     }
 
     input.valid {
       border-color: #17bf63;
+      background: rgba(23, 191, 99, 0.02);
     }
 
     input.invalid {
       border-color: #e0245e;
+      background: rgba(224, 36, 94, 0.02);
+    }
+
+    .input-helper {
+      font-size: 0.8rem;
+      color: #657786;
+      margin-top: 6px;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+    }
+
+    .input-helper.error {
+      color: #e0245e;
+    }
+
+    .input-helper.success {
+      color: #17bf63;
     }
 
     button {
@@ -128,7 +196,12 @@
 
     button:hover:not(:disabled) {
       transform: translateY(-2px);
-      box-shadow: 0 6px 20px rgba(29, 161, 242, 0.3);
+      box-shadow: 0 8px 24px rgba(29, 161, 242, 0.35);
+    }
+
+    button:active:not(:disabled) {
+      transform: translateY(0);
+      box-shadow: 0 4px 12px rgba(29, 161, 242, 0.25);
     }
 
     button:disabled {
@@ -201,31 +274,155 @@
       margin-top: 20px;
     }
 
-    .summary {
-      background: #f8f9fa;
-      padding: 15px;
-      border-radius: 10px;
+    .summary-box {
+      background: linear-gradient(135deg, #f7f9fa 0%, #e9ecef 100%);
+      padding: 20px;
+      border-radius: 12px;
+      margin-bottom: 20px;
+      border: 2px solid #e1e8ed;
+    }
+
+    .summary-box h2 {
+      margin: 0 0 15px 0;
+      color: #764ba2;
+      font-size: 1.2rem;
+      letter-spacing: -0.5px;
+    }
+
+    .sentiment-stats {
+      display: flex;
+      gap: 10px;
       margin-bottom: 15px;
-      border-left: 4px solid #1da1f2;
+      flex-wrap: wrap;
+    }
+
+    .stat {
+      flex: 1;
+      min-width: 100px;
+      padding: 12px;
+      border-radius: 12px;
+      text-align: center;
+      font-weight: 700;
+      font-size: 0.85rem;
+      box-shadow: 0 2px 8px rgba(102,126,234,0.08);
+    }
+
+    .stat.positive {
+      background: linear-gradient(135deg, #a8ff78 0%, #78ffd6 100%);
+      color: #155724;
+      border: 2px solid #a8ff78;
+    }
+
+    .stat.negative {
+      background: linear-gradient(135deg, #ffb6b9 0%, #fae3d9 100%);
+      color: #721c24;
+      border: 2px solid #ffb6b9;
+    }
+
+    .stat.neutral {
+      background: linear-gradient(135deg, #f7f7f7 0%, #e2e2e2 100%);
+      color: #856404;
+      border: 2px solid #e2e2e2;
+    }
+
+    .overall-sentiment {
+      padding: 12px;
+      border-radius: 12px;
+      font-size: 1rem;
+      font-weight: 700;
+      text-align: center;
+      margin-top: 10px;
+      box-shadow: 0 2px 8px rgba(102,126,234,0.08);
+    }
+
+    .overall-sentiment.Positive {
+      background: #28a745;
+      color: white;
+    }
+
+    .overall-sentiment.Negative {
+      background: #dc3545;
+      color: white;
+    }
+
+    .overall-sentiment.Neutral {
+      background: #ffc107;
+      color: #333;
+    }
+
+    .chart-container {
+      margin: 20px 0;
+      padding: 15px;
+      background: white;
+      border-radius: 12px;
+      box-shadow: 0 2px 8px rgba(102,126,234,0.08);
+    }
+
+    .chart-title {
       font-size: 0.9rem;
+      font-weight: 600;
+      color: #14171a;
+      margin-bottom: 12px;
+      text-align: center;
     }
 
-    .tweet {
-      border-bottom: 1px solid #e1e8ed;
-      padding: 12px 0;
+    .tweets-list {
+      max-height: 250px;
+      overflow-y: auto;
+    }
+
+    .tweet-card {
+      background: linear-gradient(135deg, #f7f9fa 0%, #e9ecef 100%);
+      border: 2px solid #e1e8ed;
+      border-radius: 12px;
+      padding: 15px;
+      margin-bottom: 12px;
+      transition: all 0.3s;
+      box-shadow: 0 2px 8px rgba(102,126,234,0.08);
+    }
+
+    .tweet-card:hover {
+      border-color: #1da1f2;
+      box-shadow: 0 2px 8px rgba(29, 161, 242, 0.1);
+    }
+
+    .tweet-user {
+      font-weight: 700;
+      color: #764ba2;
+      margin-bottom: 8px;
+      font-size: 0.85rem;
+    }
+
+    .tweet-text {
+      color: #14171a;
       line-height: 1.5;
+      margin-bottom: 10px;
       font-size: 0.85rem;
     }
 
-    .tweet:last-child {
-      border-bottom: none;
-    }
-
-    .sentiment {
-      font-weight: bold;
-      color: #1da1f2;
+    .tweet-sentiment {
+      display: inline-block;
+      padding: 5px 14px;
+      border-radius: 12px;
+      font-size: 0.8rem;
+      font-weight: 700;
       margin-top: 5px;
-      font-size: 0.85rem;
+      box-shadow: 0 2px 8px rgba(102,126,234,0.08);
+    }
+
+    .tweet-sentiment.Positive {
+      background: #d4edda;
+      color: #155724;
+    }
+
+    .tweet-sentiment.Negative {
+      background: #f8d7da;
+      color: #721c24;
+    }
+
+    .tweet-sentiment.Neutral {
+      background: #fff3cd;
+      color: #856404;
     }
   </style>
 </head>
@@ -242,8 +439,22 @@
     </div>
 
     <div id="keyword" class="tab-content active">
-      <input type="text" id="query" placeholder="Enter keywords, hashtags, or topics">
-      <button id="searchBtn">Analyze Sentiment</button>
+      <div class="input-group">
+        <div class="input-label">
+          <span class="input-label-icon">🔍</span>
+          <span>Search Keywords</span>
+        </div>
+        <div class="input-wrapper">
+          <input type="text" id="query" placeholder="Enter keywords, hashtags, or topics...">
+        </div>
+        <div class="input-helper" id="keywordHelper">
+          💡 Try searching for trending topics, hashtags (#AI), or general keywords
+        </div>
+      </div>
+      <button id="searchBtn">
+        <span style="font-size: 1rem; margin-right: 6px;">✨</span>
+        Analyze Sentiment
+      </button>
     </div>
 
     <div id="trending" class="tab-content">
@@ -253,16 +464,34 @@
         <span id="pageInfo">Page 1</span>
         <button id="nextBtn">Next</button>
       </div>
+      <button id="viewAllBtn" style="margin-top: 15px; background: linear-gradient(135deg, #764ba2 0%, #667eea 100%);">
+        View All Trending Topics
+      </button>
     </div>
 
     <div id="user" class="tab-content">
-      <input type="text" id="userQuery" placeholder="Enter @username">
-      <button id="userSearchBtn">Analyze User Posts</button>
+      <div class="input-group">
+        <div class="input-label">
+          <span class="input-label-icon">👤</span>
+          <span>Search User Posts</span>
+        </div>
+        <div class="input-wrapper">
+          <input type="text" id="userQuery" placeholder="Enter @username">
+        </div>
+        <div class="input-helper" id="userHelper">
+          💡 Enter a username starting with @ (e.g., @elonmusk)
+        </div>
+      </div>
+      <button id="userSearchBtn">
+        <span style="font-size: 1rem; margin-right: 6px;">🔎</span>
+        Analyze User Posts
+      </button>
     </div>
 
     <div id="results"></div>
   </div>
 
+  <script src="chart.umd.js"></script>
   <script src="popup.js"></script>
 </body>
 </html>
