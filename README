@@ -94,14 +94,13 @@ conda activate sentiment-analysis
 
 <h3>4. Install Dependencies:</h3>
 
+With conda:
 ```bash
-pip install -r requirements.txt
+conda install pytorch pandas flask flask-cors transformers datasets
 ```
-
-Or with conda:
+With pip:
 ```bash
-conda install pytorch pandas flask flask-cors
-pip install transformers datasets
+pip install pytorch pandas flask flask-cors transformers datasets
 ```
 
 <h3>5. (Optional) Fine-tune the Model:</h3>
