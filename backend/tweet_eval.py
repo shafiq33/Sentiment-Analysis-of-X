@@ -1,6 +1,6 @@
 import torch
 from datasets import load_dataset
-from transformers import AutoTokenizer, AutoModelForSequenceClassification, AdamW
+from transformers import AutoTokenizer, AutoModelForSequenceClassification
 from torch.utils.data import DataLoader
 
 # ---------------------------
@@ -9,7 +9,7 @@ from torch.utils.data import DataLoader
 model_name = "cardiffnlp/twitter-roberta-base-sentiment"
 max_length = 128
 batch_size = 16
-num_epochs = 3
+num_epochs = 1
 learning_rate = 2e-5
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
@@ -60,7 +60,7 @@ val_loader = DataLoader(
 # ---------------------------
 # Optimizer
 # ---------------------------
-optimizer = AdamW(model.parameters(), lr=learning_rate)
+optimizer = torch.optim.AdamW(model.parameters(), lr=learning_rate)
 
 # ---------------------------
 # Training loop
